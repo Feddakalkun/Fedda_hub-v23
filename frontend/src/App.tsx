@@ -198,6 +198,7 @@ function FeddaApp() {
     'z-image-dual-lora': <ZImageDualLoraPage />,
     'qwen-multi-angles': <QwenMultiAnglesPage />,
     'qwen-multi-angles-fast': <QwenMultiAnglesPage />,
+    'qwen-multi-angle': <QwenMultiAnglesPage />,
   };
 
   const renderWorkspace = () => {
