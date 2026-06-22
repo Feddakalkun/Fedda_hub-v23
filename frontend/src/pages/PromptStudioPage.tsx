@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from 'react';
-import { Sparkles, Copy, Check, RefreshCw, Loader2 } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Sparkles, Copy, Check, RefreshCw, Loader2, Cpu } from 'lucide-react';
 import { cn } from '../lib/styles';
 import { useOllamaStatus } from '../hooks/useOllamaStatus';
 
@@ -26,9 +26,13 @@ export const PromptStudioPage = () => {
   const [mode, setMode]               = useState<Mode>('inspire');
   const [family, setFamily]           = useState<ModelFamily>('z-image');
   const [result, setResult]           = useState('');
+  const [seed, setSeed]               = useState<number | null>(null);
+  const [usedModel, setUsedModel]     = useState<string | null>(null);
   const [streaming, setStreaming]     = useState(false);
   const [copied, setCopied]           = useState(false);
+  const [clearingVram, setClearingVram] = useState(false);
   const abortRef                      = useRef<AbortController | null>(null);
+  const outputRef                     = useRef<HTMLDivElement | null>(null);
   const ollama                        = useOllamaStatus();
 
   const enhance = useCallback(async () => {
@@ -36,6 +40,8 @@ export const PromptStudioPage = () => {
     if (!text || streaming) return;
 
     setResult('');
+    setSeed(null);
+    setUsedModel(null);
     setStreaming(true);
     abortRef.current?.abort();
     const ac = new AbortController();
@@ -81,8 +87,9 @@ export const PromptStudioPage = () => {
           const payload = line.slice(5).trim();
           if (payload === '[DONE]') { setStreaming(false); return; }
           try {
-            const { token, error } = JSON.parse(payload);
+            const { token, error, done, seed: s, model: m } = JSON.parse(payload);
             if (error) { setResult(`Error: ${error}`); setStreaming(false); return; }
+            if (done) { if (s != null) setSeed(s); if (m) setUsedModel(m); setStreaming(false); return; }
             if (token) { accumulated += token; setResult(accumulated); }
           } catch { /* ignore parse errors */ }
         }
@@ -95,6 +102,22 @@ export const PromptStudioPage = () => {
       setStreaming(false);
     }
   }, [idea, mode, family, streaming]);
+
+  // Auto-scroll output box to bottom while streaming
+  useEffect(() => {
+    if (streaming && outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    }
+  }, [result, streaming]);
+
+  const clearVram = useCallback(async () => {
+    setClearingVram(true);
+    try {
+      await fetch('/api/hardware/free-vram', { method: 'POST' });
+    } finally {
+      setClearingVram(false);
+    }
+  }, []);
 
   const copyResult = () => {
     if (!result) return;
@@ -241,13 +264,24 @@ export const PromptStudioPage = () => {
                 )}
                 {result && !streaming && (
                   <button
-                    onClick={() => { setResult(''); setIdea(''); }}
-                    title="Clear"
+                    onClick={() => { setResult(''); setIdea(''); setSeed(null); setUsedModel(null); }}
+                    title="Clear output"
                     className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] text-fedda-text-3 hover:text-fedda-text-1 transition"
                   >
                     <RefreshCw className="h-3 w-3" /> Reset
                   </button>
                 )}
+                <button
+                  onClick={clearVram}
+                  disabled={clearingVram}
+                  title="Unload models from GPU memory (ComfyUI + Ollama)"
+                  className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] text-fedda-text-3 hover:text-amber-300 transition disabled:opacity-40"
+                >
+                  {clearingVram
+                    ? <><Loader2 className="h-3 w-3 animate-spin" /> Clearing…</>
+                    : <><Cpu className="h-3 w-3" /> Clear VRAM</>
+                  }
+                </button>
                 <button
                   onClick={copyResult}
                   disabled={!result}
@@ -267,10 +301,31 @@ export const PromptStudioPage = () => {
               </div>
             </div>
 
-            <div className="min-h-[80px] rounded-xl border border-white/[0.06] bg-fedda-bg-2 px-4 py-3 text-sm text-fedda-text-1 leading-relaxed whitespace-pre-wrap">
+            <div
+              ref={outputRef}
+              className="h-48 overflow-y-auto rounded-xl border border-white/[0.06] bg-fedda-bg-2 px-4 py-3 text-sm text-fedda-text-1 leading-relaxed whitespace-pre-wrap"
+            >
               {result}
               {streaming && <span className="inline-block w-1 h-[1em] bg-fedda-accent/70 ml-0.5 animate-pulse rounded-sm" />}
             </div>
+
+            {/* Seed + model metadata */}
+            {!streaming && (seed != null || usedModel) && (
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                {seed != null && (
+                  <span className="flex items-center gap-1.5 text-[11px] text-fedda-text-4 font-mono">
+                    <span className="text-fedda-text-4 font-sans font-semibold uppercase tracking-widest text-[9px]">Seed</span>
+                    {seed}
+                  </span>
+                )}
+                {usedModel && (
+                  <span className="flex items-center gap-1.5 text-[11px] text-fedda-text-4 font-mono">
+                    <span className="text-fedda-text-4 font-sans font-semibold uppercase tracking-widest text-[9px]">Model</span>
+                    {usedModel}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

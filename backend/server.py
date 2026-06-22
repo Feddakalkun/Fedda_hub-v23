@@ -7,6 +7,7 @@ Additional services (audio, lora, video) will be added as needed.
 import os
 import json
 import ast
+import random
 import base64
 import subprocess
 import sys
@@ -290,6 +291,36 @@ async def hardware_stats():
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+@app.post("/api/hardware/free-vram")
+async def free_vram():
+    """Unload models from VRAM: tells ComfyUI and Ollama to release GPU memory."""
+    results = {}
+
+    # 1. ComfyUI — unload all models + free memory
+    try:
+        r = requests.post(f"{COMFY_URL}/free", json={"unload_models": True, "free_memory": True}, timeout=10)
+        results["comfyui"] = "ok" if r.ok else f"error {r.status_code}"
+    except Exception as exc:
+        results["comfyui"] = f"unreachable: {exc}"
+
+    # 2. Ollama — unload whichever text model is loaded (keep_alive=0 forces immediate unload)
+    try:
+        model = _get_ollama_text_model()
+        if model:
+            r = requests.post(
+                f"{OLLAMA_URL}/api/generate",
+                json={"model": model, "keep_alive": 0},
+                timeout=10,
+            )
+            results["ollama"] = "ok" if r.ok else f"error {r.status_code}"
+        else:
+            results["ollama"] = "no model loaded"
+    except Exception as exc:
+        results["ollama"] = f"unreachable: {exc}"
+
+    return {"status": "ok", "results": results}
 
 
 # ─────────────────────────────────────────────
@@ -1930,13 +1961,14 @@ async def ollama_generate_prompt(req: OllamaPromptRequest):
     mode = req.mode
     temp = 0.45 if mode == "enhance" else 0.8
     max_tokens = 240 if req.context == "zimage" else 190
+    seed = random.randint(0, 2 ** 31 - 1)
 
     payload = {
         "model": model,
         "system": system,
         "prompt": user_msg,
         "stream": True,
-        "options": {"temperature": temp, "num_predict": max_tokens},
+        "options": {"temperature": temp, "num_predict": max_tokens, "seed": seed},
     }
 
     def generate():
@@ -1950,7 +1982,7 @@ async def ollama_generate_prompt(req: OllamaPromptRequest):
                 if token:
                     yield f"data: {json.dumps({'token': token})}\n\n"
                 if data.get("done"):
-                    yield "data: [DONE]\n\n"
+                    yield f"data: {json.dumps({'done': True, 'seed': seed, 'model': model})}\n\n"
                     return
         except Exception as exc:
             yield f"data: {json.dumps({'error': str(exc)})}\n\n"
