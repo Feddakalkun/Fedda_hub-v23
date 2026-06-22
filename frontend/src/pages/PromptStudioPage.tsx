@@ -236,17 +236,30 @@ export const PromptStudioPage = () => {
             />
           </div>
 
-          {/* Generate button */}
-          <button
-            onClick={enhance}
-            disabled={!idea.trim() || streaming || (!ollama.isLoading && !ollama.isConnected)}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-fedda-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-fedda-accent/85 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {streaming
-              ? <><Loader2 className="h-4 w-4 animate-spin" /> Generating…</>
-              : <><Sparkles className="h-4 w-4" /> {mode === 'inspire' ? 'Generate Prompt' : 'Enhance Prompt'}</>
-            }
-          </button>
+          {/* Generate + Clear VRAM row */}
+          <div className="flex gap-2">
+            <button
+              onClick={enhance}
+              disabled={!idea.trim() || streaming || (!ollama.isLoading && !ollama.isConnected)}
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-fedda-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-fedda-accent/85 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {streaming
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> Generating…</>
+                : <><Sparkles className="h-4 w-4" /> {mode === 'inspire' ? 'Generate Prompt' : 'Enhance Prompt'}</>
+              }
+            </button>
+            <button
+              onClick={clearVram}
+              disabled={clearingVram}
+              title="Unload models from GPU memory (ComfyUI + Ollama)"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-fedda-text-3 hover:text-amber-300 hover:border-amber-400/30 transition disabled:opacity-40"
+            >
+              {clearingVram
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> Clearing…</>
+                : <><Cpu className="h-4 w-4" /> Clear VRAM</>
+              }
+            </button>
+          </div>
         </div>
 
         {/* Output card */}
@@ -271,17 +284,6 @@ export const PromptStudioPage = () => {
                     <RefreshCw className="h-3 w-3" /> Reset
                   </button>
                 )}
-                <button
-                  onClick={clearVram}
-                  disabled={clearingVram}
-                  title="Unload models from GPU memory (ComfyUI + Ollama)"
-                  className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] text-fedda-text-3 hover:text-amber-300 transition disabled:opacity-40"
-                >
-                  {clearingVram
-                    ? <><Loader2 className="h-3 w-3 animate-spin" /> Clearing…</>
-                    : <><Cpu className="h-3 w-3" /> Clear VRAM</>
-                  }
-                </button>
                 <button
                   onClick={copyResult}
                   disabled={!result}
