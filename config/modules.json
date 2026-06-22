@@ -198,12 +198,10 @@
         "wan22-vid2vid",
         "wan22-img2vid",
         "wan22-img2vid-6frames",
-        "wan21-steady-dancer",
-        "wan21-scail2"
+        "wan21-steady-dancer"
       ],
       "workflows": [
         "wan21-steady-dancer",
-        "wan21-scail2",
         "wan22-vid2vid",
         "wan22-img2vid",
         "wan22-img2vid-6frames"
@@ -213,7 +211,6 @@
         "ComfyUI-WanAnimatePreprocess",
         "ComfyUI-VideoHelperSuite",
         "ComfyUI-Frame-Interpolation",
-        "ComfyUI-GGUF",
         "ComfyMath",
         "comfy_mtb"
       ],
