@@ -1,4 +1,4 @@
-import { Bot, Film, Images, LayoutDashboard, Sparkles, Video, Volume2, Heart, type LucideIcon } from 'lucide-react';
+import { Bot, Film, Images, LayoutDashboard, Sparkles, Video, Volume2, Heart, Wand2, type LucideIcon } from 'lucide-react';
 
 export type ModulePack = 'core' | 'booster';
 export type ModuleArea = 'home' | 'image' | 'video' | 'system';
@@ -140,6 +140,18 @@ export const FEDDA_MODULES: FeddaModule[] = [
     tabs: ['zonos-tts'],
     defaultTab: 'zonos-tts',
     Icon: Volume2,
+  },
+  {
+    id: 'prompt-studio',
+    sourceModuleId: 'core-shell',
+    label: 'Prompt Studio',
+    description: 'Describe your idea in plain language — AI writes the perfect image prompt.',
+    area: 'system',
+    pack: 'core',
+    tabs: ['prompt-studio'],
+    defaultTab: 'prompt-studio',
+    Icon: Wand2,
+    card: veniceCard(5),
   },
   {
     id: 'companion',

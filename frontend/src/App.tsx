@@ -24,6 +24,7 @@ import { OllamaModelsPage } from './pages/OllamaModelsPage';
 import { ZonosTTSPage } from './pages/ZonosTTSPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { UIAgentPage } from './pages/UIAgentPage';
+import { PromptStudioPage } from './pages/PromptStudioPage';
 import { ZImageDualLoraPage } from './pages/image/ZImageDualLoraPage';
 import { QwenMultiAnglesPage } from './pages/image/QwenMultiAnglesPage';
 import {
@@ -199,6 +200,7 @@ function FeddaApp() {
     'qwen-multi-angles': <QwenMultiAnglesPage />,
     'qwen-multi-angles-fast': <QwenMultiAnglesPage />,
     'qwen-multi-angle': <QwenMultiAnglesPage />,
+    'prompt-studio': <PromptStudioPage />,
   };
 
   const renderWorkspace = () => {
