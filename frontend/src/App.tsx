@@ -24,6 +24,8 @@ import { OllamaModelsPage } from './pages/OllamaModelsPage';
 import { ZonosTTSPage } from './pages/ZonosTTSPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { UIAgentPage } from './pages/UIAgentPage';
+import { ZImageDualLoraPage } from './pages/image/ZImageDualLoraPage';
+import { QwenMultiAnglesPage } from './pages/image/QwenMultiAnglesPage';
 import {
   ACTIVE_TAB_STORAGE_KEY,
   APP_VERSION_LABEL,
@@ -193,6 +195,9 @@ function FeddaApp() {
     'lora-library': <LibraryPage />,
     'ui-agent': <UIAgentPage />,
     'companion': <UIAgentPage />,
+    'z-image-dual-lora': <ZImageDualLoraPage />,
+    'qwen-multi-angles': <QwenMultiAnglesPage />,
+    'qwen-multi-angles-fast': <QwenMultiAnglesPage />,
   };
 
   const renderWorkspace = () => {
