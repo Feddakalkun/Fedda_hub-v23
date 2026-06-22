@@ -1,6 +1,9 @@
 import { ArrowLeft, Home, Loader2, type LucideIcon } from 'lucide-react';
 import { useComfyExecution } from '../../contexts/ComfyExecutionContext';
 import { useComfyStatus } from '../../hooks/useComfyStatus';
+import { useBackendStatus } from '../../hooks/useBackendStatus';
+import { useOllamaStatus } from '../../hooks/useOllamaStatus';
+import { SettingsPopover } from './SettingsPopover';
 
 interface AppHeaderProps {
   title: string;
@@ -11,8 +14,17 @@ interface AppHeaderProps {
   onHome: () => void;
 }
 
+const StatusDot = ({ ok, label }: { ok: boolean; label: string }) => (
+  <div className="flex items-center gap-1.5" title={`${label}: ${ok ? 'connected' : 'offline'}`}>
+    <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${ok ? 'bg-emerald-400' : 'bg-fedda-text-4'}`} />
+    <span className="text-[10px] text-fedda-text-4 hidden sm:block">{label}</span>
+  </div>
+);
+
 export const AppHeader = ({ title, Icon, showBack, showHome, onBack, onHome }: AppHeaderProps) => {
-  const { isConnected } = useComfyStatus();
+  const { isConnected: comfyOk } = useComfyStatus();
+  const { isConnected: backendOk } = useBackendStatus();
+  const { isConnected: ollamaOk } = useOllamaStatus();
   const { state, currentNodeName, overallProgress } = useComfyExecution();
 
   const isExecuting = state === 'executing';
@@ -55,7 +67,7 @@ export const AppHeader = ({ title, Icon, showBack, showHome, onBack, onHome }: A
         </div>
 
         {/* Right — system status */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-3 flex-shrink-0">
           {isExecuting && (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-fedda-accent/20 bg-fedda-accent/[0.06]">
               <Loader2 className="h-3 w-3 text-fedda-accent animate-spin" />
@@ -67,10 +79,16 @@ export const AppHeader = ({ title, Icon, showBack, showHome, onBack, onHome }: A
               <span className="text-[10px] font-semibold text-emerald-400">Done</span>
             </div>
           )}
-          <div className="flex items-center gap-1.5">
-            <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${isConnected ? 'bg-emerald-400' : 'bg-fedda-text-4'}`} />
-            <span className="text-[10px] text-fedda-text-4 hidden sm:block">ComfyUI</span>
+
+          {/* Status dots */}
+          <div className="flex items-center gap-3 border-l border-white/[0.06] pl-3">
+            <StatusDot ok={backendOk} label="Backend" />
+            <StatusDot ok={ollamaOk} label="Ollama" />
+            <StatusDot ok={comfyOk} label="ComfyUI" />
           </div>
+
+          {/* Settings */}
+          <SettingsPopover />
         </div>
       </div>
 

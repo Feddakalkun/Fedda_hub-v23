@@ -245,6 +245,7 @@ def _save_agent_settings(payload: Dict[str, Any]) -> Dict[str, str]:
 # Health & Status
 # ─────────────────────────────────────────────
 @app.get("/health")
+@app.get("/api/health")
 async def health():
     """Health check."""
     return {"status": "ok", "version": "0.2.0"}
