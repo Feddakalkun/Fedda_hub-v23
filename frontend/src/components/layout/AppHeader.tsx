@@ -3,6 +3,7 @@ import { useComfyExecution } from '../../contexts/ComfyExecutionContext';
 import { useComfyStatus } from '../../hooks/useComfyStatus';
 import { useBackendStatus } from '../../hooks/useBackendStatus';
 import { useOllamaStatus } from '../../hooks/useOllamaStatus';
+import { useGpuStats } from '../../hooks/useGpuStats';
 import { SettingsPopover } from './SettingsPopover';
 
 interface AppHeaderProps {
@@ -21,20 +22,75 @@ const StatusDot = ({ ok, label }: { ok: boolean; label: string }) => (
   </div>
 );
 
+const GpuPill = () => {
+  const gpu = useGpuStats(5000);
+  if (!gpu) return null;
+
+  const usedGb  = (gpu.memUsed  / 1024).toFixed(1);
+  const totalGb = (gpu.memTotal / 1024).toFixed(0);
+  const vramPct = gpu.memPct;
+
+  // bar fills 0–100 mapped to 0–40px wide
+  const barColor =
+    vramPct > 90 ? 'bg-red-400' :
+    vramPct > 70 ? 'bg-amber-400' :
+    'bg-fedda-accent/60';
+
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-white/[0.07] bg-white/[0.03] px-3 py-1.5">
+      {/* GPU name */}
+      <span className="text-[10px] font-medium text-fedda-text-3 hidden md:block">{gpu.shortName}</span>
+
+      {/* VRAM bar + label */}
+      <div className="flex items-center gap-1.5">
+        <div className="w-16 h-1 rounded-full bg-white/[0.08] overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-1000 ${barColor}`}
+            style={{ width: `${vramPct}%` }}
+          />
+        </div>
+        <span className="text-[10px] font-mono text-fedda-text-3 tabular-nums whitespace-nowrap">
+          {usedGb}/{totalGb} GB
+        </span>
+      </div>
+
+      {/* Divider */}
+      <span className="text-fedda-text-4 text-[10px]">·</span>
+
+      {/* Utilization */}
+      <span
+        className={`text-[10px] font-mono tabular-nums ${gpu.utilization > 80 ? 'text-amber-400' : 'text-fedda-text-3'}`}
+        title="GPU utilization"
+      >
+        {gpu.utilization}%
+      </span>
+
+      {/* Temperature */}
+      <span
+        className={`text-[10px] font-mono tabular-nums hidden lg:block ${gpu.temperature > 80 ? 'text-red-400' : 'text-fedda-text-4'}`}
+        title="GPU temperature"
+      >
+        {gpu.temperature}°
+      </span>
+    </div>
+  );
+};
+
 export const AppHeader = ({ title, Icon, showBack, showHome, onBack, onHome }: AppHeaderProps) => {
-  const { isConnected: comfyOk } = useComfyStatus();
-  const { isConnected: backendOk } = useBackendStatus();
-  const { isConnected: ollamaOk } = useOllamaStatus();
+  const { isConnected: comfyOk }    = useComfyStatus();
+  const { isConnected: backendOk }  = useBackendStatus();
+  const { isConnected: ollamaOk }   = useOllamaStatus();
   const { state, currentNodeName, overallProgress } = useComfyExecution();
 
   const isExecuting = state === 'executing';
-  const isDone = state === 'done';
+  const isDone      = state === 'done';
 
   return (
     <header className="flex flex-col flex-shrink-0 border-b border-white/[0.06]">
       <div className="h-12 flex items-center px-4 gap-3">
-        {/* Left — nav controls */}
-        <div className="flex items-center gap-1.5">
+
+        {/* Left — nav */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {showBack && (
             <button
               onClick={onBack}
@@ -66,8 +122,10 @@ export const AppHeader = ({ title, Icon, showBack, showHome, onBack, onHome }: A
           )}
         </div>
 
-        {/* Right — system status */}
+        {/* Right */}
         <div className="flex items-center gap-3 flex-shrink-0">
+
+          {/* Execution state */}
           {isExecuting && (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-fedda-accent/20 bg-fedda-accent/[0.06]">
               <Loader2 className="h-3 w-3 text-fedda-accent animate-spin" />
@@ -80,14 +138,17 @@ export const AppHeader = ({ title, Icon, showBack, showHome, onBack, onHome }: A
             </div>
           )}
 
-          {/* Status dots */}
+          {/* GPU */}
+          <GpuPill />
+
+          {/* Service status dots */}
           <div className="flex items-center gap-3 border-l border-white/[0.06] pl-3">
             <StatusDot ok={backendOk} label="Backend" />
-            <StatusDot ok={ollamaOk} label="Ollama" />
-            <StatusDot ok={comfyOk} label="ComfyUI" />
+            <StatusDot ok={ollamaOk}  label="Ollama" />
+            <StatusDot ok={comfyOk}   label="ComfyUI" />
           </div>
 
-          {/* Settings */}
+          {/* Token settings */}
           <SettingsPopover />
         </div>
       </div>
