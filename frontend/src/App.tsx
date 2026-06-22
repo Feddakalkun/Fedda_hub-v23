@@ -22,6 +22,8 @@ import { GrokPage } from './pages/GrokPage';
 import { GalleryPage } from './pages/GalleryPage';
 import { OllamaModelsPage } from './pages/OllamaModelsPage';
 import { ZonosTTSPage } from './pages/ZonosTTSPage';
+import { LibraryPage } from './pages/LibraryPage';
+import { UIAgentPage } from './pages/UIAgentPage';
 import {
   ACTIVE_TAB_STORAGE_KEY,
   APP_VERSION_LABEL,
@@ -187,6 +189,10 @@ function FeddaApp() {
     'gallery': <GalleryPage />,
     'ollama': <OllamaModelsPage />,
     'zonos-tts': <ZonosTTSPage />,
+    'library': <LibraryPage />,
+    'lora-library': <LibraryPage />,
+    'ui-agent': <UIAgentPage />,
+    'companion': <UIAgentPage />,
   };
 
   const renderWorkspace = () => {

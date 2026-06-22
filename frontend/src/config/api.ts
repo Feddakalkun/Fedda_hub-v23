@@ -55,6 +55,12 @@ export const BACKEND_API = {
         GENERATE: '/api/generate',
         GENERATE_STATUS: '/api/generate/status',
         LORA_LIST: '/api/lora/list',
+        WORKFLOW_MEMORY: '/api/workflow-memory',
+        UI_AGENT_WORKFLOWS: '/api/ui-agent/workflows',
+        UI_AGENT_PLAN: '/api/ui-agent/plan',
+        UI_AGENT_PREPARE: '/api/ui-agent/prepare',
+        UI_AGENT_RUN: '/api/ui-agent/run',
+        UI_AGENT_MEMPALACE_STATUS: '/api/ui-agent/mempalace/status',
     },
 };
 
